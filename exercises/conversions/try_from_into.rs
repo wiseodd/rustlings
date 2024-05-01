@@ -27,8 +27,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation and return an Ok result of inner
 // type Color. You need to create an implementation for a tuple of three
 // integers, an array of three integers, and a slice of integers.
@@ -40,21 +38,71 @@ enum IntoColorError {
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
+
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let red: u8 = match u8::try_from(tuple.0) {
+            Ok(_v) => _v,
+            Err(_) => return Err(IntoColorError::IntConversion),
+        };
+        let green: u8 = match u8::try_from(tuple.1) {
+            Ok(_v) => _v,
+            Err(_) => return Err(IntoColorError::IntConversion),
+        };
+        let blue: u8 = match tuple.2.try_into() {
+            Ok(_v) => _v,
+            Err(_) => return Err(IntoColorError::IntConversion),
+        };
+
+        Ok(Color { red, green, blue })
     }
 }
 
 // Array implementation
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
+
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        let mut res: Vec<u8> = vec![];
+
+        for val in arr {
+            let val_u8: u8 = match val.try_into() {
+                Ok(v) => v,
+                Err(_) => return Err(IntoColorError::IntConversion),
+            };
+            res.push(val_u8);
+        }
+
+        Ok(Color {
+            red: res[0],
+            green: res[1],
+            blue: res[2],
+        })
     }
 }
 
 // Slice implementation
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
+
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err(IntoColorError::BadLen);
+        }
+
+        let mut res: Vec<u8> = vec![];
+
+        for val in slice {
+            res.push(match val.to_owned().try_into() {
+                Ok(v) => v,
+                Err(_) => return Err(IntoColorError::IntConversion),
+            });
+        }
+
+        Ok(Color {
+            red: res[0],
+            green: res[1],
+            blue: res[2],
+        })
     }
 }
 
